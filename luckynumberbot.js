@@ -4,8 +4,8 @@ var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var bot_token = process.env.BOT_CODE || '';
 var schedule = require('node-schedule');
 var rule = new schedule.RecurrenceRule();
-rule.hour = 14
-rule.minute = 43
+rule.hour = 9
+rule.minute = 15
 
 
 var rtm = new RtmClient(bot_token);
@@ -14,15 +14,22 @@ let idList = []
 
 console.log("Server going live!")
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
-
+  var userIDs  = []
   for (const im of rtmStartData.ims) {
-  	console.log(im)
   	idList.push(im["id"])
+    userIDs.push(im["user"])
+  }
+
+  console.log("Currently subscribed members: ")
+  for(const user of rtmStartData.users){
+    if(userIDs.includes(user["id"])){
+      console.log(user.name)
+    }
   }
 });
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
-  idList = ['D71E7G4A3']
+  // idList = ['D71E7G4A3']
   var job = schedule.scheduleJob(rule, ()=>{
   var fortunes = ["Your fortune today is:  Your thoughts are emotionally charged, but you'll find that this can be used to your advantage. You have a great deal of knowledge at your disposal, and you aren't afraid to throw in a little drama just for the fun of it. Your dramatic flair will take you far on a day like today. Don't hesitate to get exactly what you want.", 
                   "- The fast-paced frenzy of the day is just what you need to jump-start your brain and get it moving in the right direction. Take control of the fire within and keep it strong all day. You'll find that there's a more personal aspect to your thoughts, and you can think more rationally about your emotions. Your heart and your head are working well together.", 
