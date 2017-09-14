@@ -10,6 +10,7 @@ rule.minute = 15
 
 var rtm = new RtmClient(bot_token);
 let idList = []
+let ignoredChannels = {}
 // The client will emit an RTM.AUTHENTICATED event on successful connection, with the `rtm.start` payload if you want to cache it
 
 console.log("Server going live!")
@@ -31,6 +32,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
   // idList = ['D71E7G4A3']
   var job = schedule.scheduleJob(rule, ()=>{
+  console.log("getting ready to send out fortunes")
   var fortunes = ["Your fortune today is:  Your thoughts are emotionally charged, but you'll find that this can be used to your advantage. You have a great deal of knowledge at your disposal, and you aren't afraid to throw in a little drama just for the fun of it. Your dramatic flair will take you far on a day like today. Don't hesitate to get exactly what you want.", 
                   "- The fast-paced frenzy of the day is just what you need to jump-start your brain and get it moving in the right direction. Take control of the fire within and keep it strong all day. You'll find that there's a more personal aspect to your thoughts, and you can think more rationally about your emotions. Your heart and your head are working well together.", 
                   "Charge ahead and use your emotions to fuel your fire. You have plenty of mental acumen today that can help break through any puzzle. New beginnings are underway in many areas of your life. There's no reason to delay any longer than you already have. Take this opportunity to live up to your full potential and make things happen for yourself.", 
@@ -56,22 +58,46 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
                   "Fasten your seatbelt and put your tray-table in the upright position. Some serious turbulence is en route, and bracing yourself before it happens is the only way to get through it. Even if you don't emerge from the experience totally unscathed, you'll definitely be a lot better off than some of your unprepared friends. You can try warning them, by the way, but don't expect them to take you seriously.",
                   "ou have every right to use all of your skills -- not just your intelligence -- when working toward a goal. Today's the day to pull out your secret weapon: your brilliant charm! Flash that smile and tell people just how wonderful you think they are. Folks enjoy being recognized for their unique contributions. You know how to boost someone's ego appropriately, without flirtation and manipulation.",
                   "Someone's not happy with one or more of your habits. Your first clue? The all-too-frequent lectures on self-discipline, willpower and just saying no. You'd think they would know you well enough to understand that these tactics don't work well on you -- and if they keep it up, you'll only become more determined to have your way. Just try to find a balance between the wisdom of what they're saying and your own need for independence.",
-                  "Today, you will clash with some fucking bullshit code. It will be trying, but remember, the logs are your friend. Do not despair, reach out to the other R&D memebers. If all else fails, curse salesforce and go home early, secure in the knowledge that tomorrow will bring new revelations and a new understanding of the problem you are facing. "
+                  "Today, you will clash with some fucking bullshit code. It will be trying, but remember, the logs are your friend. Do not despair, reach out to the other R&D memebers. If all else fails, curse salesforce and go home early, secure in the knowledge that tomorrow will bring new revelations and a new understanding of the problem you are facing. ",
+                  "The moon is in a favorable position, which may swing the tide in your favor. This Tuesday, you will clean out your office refrigerator — something you have been meaning to do for months. Unfortunately, not all is favorable for you in the coming weeks. Your favorite coffee machine will break unexpectedly, while maintenance is nowhere to be found.",
+                  "Your prosperity is on the rise this year. Persistent efforts at home pay off. Autumn brings two years of growth and benefits through communications. Introspection, reflection and planning this winter leads to a revitalizing energy surge. Harness your passio",
+                  "Creativity and communications come easier. Investigate and research a fascination. Master the rules to break and mold them. Write, record and share what you're learning.",
+                  "At first, it seems as if the day is passing you by and that you are watching it on a screen, unable to interact with the events. After a few false starts, you begin to worry that you will miss your chance to make anything positive happen at all. However, delays can be used in your favor while you sharpen your analytical tools. Still, you must take a leap of faith today in order to get into the flow or you’ll end up looking back at your inaction with frustration. ",
+                  "You are tempted to disengage from social interactions today, simply do your work and then return to your cozy nest. You don’t feel like talking to anyone because they might ruin your peaceful state of mind. Nevertheless, human connection, like meditation and rest, is an essential ingredient to your emotional well-being. Overcoming uncertainty doesn’t require you to do anything differently now as long as you keep your mind open. ",
+                  "You might be playing with the idea of taking a day trip with a few of your closest friends. Although you can benefit from doing something outside your regular work hours, you also look forward to squeezing some fun activities into your work schedule today. Give yourself permission to feel good; enjoying the present moment is a decision you get to make every single moment. ",
+                  "Your thoughts may run all over the place today as you consider your role in a current partnership. Nevertheless, your common sense prevails, even if it’s not obvious how you justify your conclusions. Ultimately, fear can rule the day unless you consciously choose the high road. However, keeping your heart open is more than just stating your intention. Walking a mile in another person’s shoes drastically alters your perspective. Never assume you know what's going on until you do.",
+                  "You could accomplish amazing things today once you gain control of your own mind. But simply stating your intention is not enough; you must actually know you can do it. Naturally, it may be tricky to maintain your positive attitude while you’re in the midst of the flurry of current events. Escape the negative consequences of past actions by changing your frame of reference. ",
+                  "You tend to thrive when so many different issues demand your attention. There’s little opportunity for boredom to settle in now, especially if you continue to say yes to everyone who brings you a problem or an unfinished project. Thankfully, you won’t likely feel overloaded if you are doing what you love; you can easily keep up with your responsibilities when your mission is clear. ",
+                  "Someone might think your self-protective nature could be detrimental, preventing you from reaching your goals. Oddly enough, most people don’t even know what your objectives are, no less your plans for achieving them. Meanwhile, you realize that when you don’t feel emotionally secure, you’re too preoccupied to concentrate on your to-do list. However, you transform into a miracle worker once you know your needs are met and your heart is safe from harm",
+                  "Almost everyone may leave you alone today, and you really don’t mind the distance at all. However, you begin to long for uplifting interpersonal connections as the day wears on. Thankfully, you don’t need to try very hard in your search for companionship now. Once you make your availability known, potential partners-in-crime appear everywhere you look. Nevertheless, it’s still up to you to decide which one is the most compatible with your goals. Remember, it’s the friends you meet along the way that help you appreciate the journey.",
+                  "You could be feeling more vulnerable today than anyone realizes. You can easily hide behind your words because they sound more combative than you intend. Meanwhile, your real emotions are buried out of sight in hopes that no one will see them. Nevertheless, you don’t need to accept the status quo if you choose to break through your fear of sharing your heart. ",
+                  "You can tell something’s not quite right today; it’s as if someone close to you is pulling away but won’t admit it. Unfortunately, sobering Saturn is crossing paths with the Virgo Sun, restricting the flow of love and light. There is a lesson for you to learn now, but the temporary isolation is not indicative of a permanent condition. Examine your own feelings to see if you’re the one who is retreating emotionally. ",
+                  "Taking others under your wing at work today is a challenging process, especially if you’re feeling a bit insecure yourself. You want only the best people involved in your project, but you don’t necessarily enjoy it if they outshine you. Nevertheless, you can’t help but nurture those who need it the most now. Meanwhile, staying connected with your friends during the process is a good idea because it allows you to move through the rough spots without missing a beat. Competition makes us faster; collaboration makes us better.",
+                  "There are thoughts you want to share but you struggle with putting them out in the open. You are protective of your ideas and don’t want anyone else to know about them until they are further along in their development. You are eager to hone your vision into ready-for-prime-time shape, but may be strapped for time now. Fortunately, your commitment to excellence motivates you to return to this personal work when you can."
                   ]
     for(const specID of idList){
       var counter = getRandomIntInclusive(0, fortunes.length - 1)
-	  	  randNum = getRandomIntInclusive(1,560)
-		  rtm.sendMessage("Your lucky number today is " + randNum, specID).catch((err)=>{
-		  	console.log(err)
-		  });
-      rtm.sendMessage(fortunes[counter], specID)
+	  	randNum = getRandomIntInclusive(1,560)
+      if(!ignoredChannels[specID]){
+  		  rtm.sendMessage("Your lucky number today is " + randNum, specID).catch((err)=>{
+  		  	console.log(err)
+  		  });
+        rtm.sendMessage(fortunes[counter], specID)
+        // rtm.sendMessage("To unsubscribe type 'unsubscribe' in a message to me", specID)
+      }
 		}
   })
 });
 
-rtm.on(CLIENT_EVENTS.RTM.IM, (message)=>{
-	console.log("ahahahah")
-	console.log(message)
+rtm.on('message', (message)=>{
+  var text = message["text"]
+  var textArr = text.split(" ")
+  if(textArr.includes("unsubscribe") || textArr.includes("Unsubscribe")){
+    rtm.sendMessage("You have been unsubscribed from luckynumberbot, to resubscribe, message me again", message["channel"])
+    ignoredChannels[message["channel"]] = true
+  }else{
+    ignoredChannels[message["channel"]] = false
+  }
 })
 
 function getRandomIntInclusive(min, max) {
