@@ -1,5 +1,7 @@
 var RtmClient = require('@slack/client').RtmClient;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
+var fortuneArr = require("./fortunes")
+var http = require('http');
 
 var bot_token = process.env.BOT_CODE || '';
 var schedule = require('node-schedule');
@@ -11,13 +13,16 @@ rule.minute = 15
 var rtm = new RtmClient(bot_token);
 let idList = []
 let ignoredChannels = {}
+var fortunes = fortuneArr.fortunes
+var symbols = fortuneArr.symbols
 // The client will emit an RTM.AUTHENTICATED event on successful connection, with the `rtm.start` payload if you want to cache it
 
 console.log("Server going live!")
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
   var userIDs  = []
+  console.log(fortunes.length)
   for (const im of rtmStartData.ims) {
-  	idList.push(im["id"])
+    idList.push(im["id"])
     userIDs.push(im["user"])
   }
 
@@ -27,54 +32,31 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
       console.log(user.name)
     }
   }
+
+  // console.log("addingAPIStuff")
+  // for(symbol of symbols){
+  //   var body = []
+  //   http.get("http://horoscope-api.herokuapp.com/")
+  //         .on('error', (err) => {
+  //             console.log(err.stack);
+  //         })
+  //         .on('data', (d) => {
+  //             //the object returned is a feed that we need to reasabmble
+  //             //console.log returns gibberish. (because its a data stream)
+  //             body.push(d)
+  //         })
+  //         .on('end', ()=>{
+  //             console.log(JSON.parse(Buffer.concat(body).toString()))
+  //         });
+  // }
+
 });
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
   // idList = ['D71E7G4A3']
+
   var job = schedule.scheduleJob(rule, ()=>{
   console.log("getting ready to send out fortunes")
-  var fortunes = ["Your fortune today is:  Your thoughts are emotionally charged, but you'll find that this can be used to your advantage. You have a great deal of knowledge at your disposal, and you aren't afraid to throw in a little drama just for the fun of it. Your dramatic flair will take you far on a day like today. Don't hesitate to get exactly what you want.", 
-                  "- The fast-paced frenzy of the day is just what you need to jump-start your brain and get it moving in the right direction. Take control of the fire within and keep it strong all day. You'll find that there's a more personal aspect to your thoughts, and you can think more rationally about your emotions. Your heart and your head are working well together.", 
-                  "Charge ahead and use your emotions to fuel your fire. You have plenty of mental acumen today that can help break through any puzzle. New beginnings are underway in many areas of your life. There's no reason to delay any longer than you already have. Take this opportunity to live up to your full potential and make things happen for yourself.", 
-                  "Be a bit selfish today. You have every right to look out for number one. Sensitivity to other people's emotions and issues is noble, but it may leave you emotionally drained. Think rationally about your emotions and have the courage to say no to people once in a while. You're a giver and a saint. This is the perfect day to do some giving back - to yourself.", 
-                  "Much of your focus is internal, but today it would behoove you to turn some of that energy outward. Take this opportunity to make a leap of faith in the right direction. You have a great deal of bite behind your words. Don't underestimate your power and bravery. Just be careful that you don't start arguments over petty issues that aren't worth losing friends over.",
-                  "This month will be complicated. Make sure to use the full moon to your advantage by accomplishing some spring cleaning in your life and also your bad habits. Make an effort to be more kind to those around you even as you reach your breaking point this month. Reflect on your past and the foundation you've built for yourself.",
-                  "This month will be busy and your social life will skyrocket! Be careful of what drama you decide to get involved in, think twice about that subtweet. Use your intense emotions for good this month. You might be a little forgetful this month, don't buy anything too expensive, and make sure to clearly communicate with those around you. There will be some signs of an awakening later on, keep your eyes open for them!",
-                  "You're always busy, but it's ramping up a little bit this month! You love home so make sure that you're carrying comforting items with you. The work you do this month will help you achieve your goals for the next six months. Let people contribute to your happiness this month, they will come to be an important part of your life. Reach out to others for help when you find yourself stuck.",
-                  "Long-distance travel could be in your future. Don't give anyone your full trust without doing the work to make sure they're worthy of it. You might feel a little bit stuck this month, but use this time as a research period of sorts before making any big decisions. Leave some time for yourself to try something new or spend time with friends. Avoid drama at all costs, and make sure to resolve whatever issues you've been having with any of the male figures (especially your father) in your life.",
-                  "Prepare for this month to be intense. You're focused on one person or project, but you're alert and observant. Epiphanies are headed your way and they could lead to big transformations in your love life, financial status, and career. Consider making a vision board and thinking about some of the bigger goals you want to achieve in the next six months. Keep doing things you love and watch the positivity flow into your life!",
-                  "Spring cleaning is here! This is the perfect time to get organized, start a new workout routine, or remember to take your vitamins in the morning. This month will leave a lot of time for reflection on the past, take that time and don't brush it off, what you accomplish this month will help you for the rest of the year. Pay special attention to your closest relationships at the end of the month, reflect on how well you're being fulfilled in them.",
-                  "It's spring and the possibilities are endless! With how optimistic you are, this might be your favorite season. Be present in the moment at all times this month. This month is a good time to start making new, healthy, habits. Just make sure you stick to it! It's not about being a smaller size, it's about doing something good for yourself. If you feel better on the inside, it will radiate outward.",
-                  "You've had a busy year so far. Don't worry though, this month is all about down time. You might hit a couple of rough spots, but remember to dance it off, keep your head up, and smile big. The end of the month could bring about a child, or brainchild. You'll be entering a more public role in your life around this time. Make sure you really want to be in this position though, take your time and think on it. This could impact a lot of things down the road.",
-                  "It's time to socialize! Reach out in your community to people you might not have thought about talking to before. You're likely to draw some good friends into your circle this month. It could get a little overwhelming by the end of it all though, don't be scared to take some time for yourself at home and don't overbook your schedule! Start mapping out where you see yourself in the next six months. Where will you live? Where will you work? This is the time to start planning!",
-                  "It's time to start making your dreams a reality! You've changed a lot in the past year, and now you can start building your life to reflect the new person you've become. Make sure to take a break from the serious work and have some lighthearted fun. The end of the month could create the start of an important professional relationship. Take it slow, work on a couple of smaller projects together, there's plenty of time to work with this new person.",
-                  "A productive kind of energy will bring money and possessions to the very front of your mind today. You may need to make a serious decision as a result, but it's one you've seen coming for a while, so not to worry. If you need extra cash, you might also consider taking on a part-time job, maybe even something that involves a hobby. It might actually be fun.",
-                  "Recently, you placed your trust in someone the rest of the world had completely abandoned -- and as it turned out, you were absolutely right. Now you're being asked to lend your support to someone with a similar track record. Forget what anyone tries to tell you about logic, statistics or typical behavior and don't feel obligated one way or the other. Let your intuition guide you like it did last time.",
-                  "Every now and then, you need to spend some time alone, thinking about what's really important to you. Take that time now -- you really shouldn't let anyone convince you otherwise. Cancel your appointments and sit down quietly in a place you know you won't be disturbed. Take your time. When you're done, you'll want to share your thoughts with the ones you love. Call them -- they'll be glad to hear from you.",
-                  "Your family members have a big surprise in store for you -- a very big surprise. Does that mean you should worry about what's coming or head for the hills? Certainly not. Really, your only option is to hold on tight and ride the ride -- which may actually be rather fun. Oh, and when this all goes down, pretend to be surprised.",
-                  "That emotional mood you were in yesterday hasn't gone anywhere just yet. You want to sit down with the person you love best and tell them all about it. So what's the problem? They'll be delighted, and you know it. If you're afraid of getting hurt, try to figure out where that's coming from. Chances are it's something from the past -- not the present -- that's convinced you revealing your feelings makes you emotionally vulnerable",
-                  "Getting you into the car for a long-distance trip -- or on a bus, a plane or a space shuttle, for that matter -- has never been much of a challenge. But once you've set down roots, you hate to move. Well, prepare yourself, because today's unsettling energy could bring this urge your way. If you've been thinking about a change anyway, take a deep breath and put some of those thoughts down on paper. Anything's possible, right?",
-                  "After days of wondering what to do -- while pretending you have everything under strict control -- you're suddenly ready to admit you don't quite know what to do. Should you let go and buy what you want, or tighten up that belt and leave it alone? You can't do this alone. Ask the advice of a trusted friend, someone who has no agenda.",
-                  "Fasten your seatbelt and put your tray-table in the upright position. Some serious turbulence is en route, and bracing yourself before it happens is the only way to get through it. Even if you don't emerge from the experience totally unscathed, you'll definitely be a lot better off than some of your unprepared friends. You can try warning them, by the way, but don't expect them to take you seriously.",
-                  "ou have every right to use all of your skills -- not just your intelligence -- when working toward a goal. Today's the day to pull out your secret weapon: your brilliant charm! Flash that smile and tell people just how wonderful you think they are. Folks enjoy being recognized for their unique contributions. You know how to boost someone's ego appropriately, without flirtation and manipulation.",
-                  "Someone's not happy with one or more of your habits. Your first clue? The all-too-frequent lectures on self-discipline, willpower and just saying no. You'd think they would know you well enough to understand that these tactics don't work well on you -- and if they keep it up, you'll only become more determined to have your way. Just try to find a balance between the wisdom of what they're saying and your own need for independence.",
-                  "Today, you will clash with some fucking bullshit code. It will be trying, but remember, the logs are your friend. Do not despair, reach out to the other R&D memebers. If all else fails, curse salesforce and go home early, secure in the knowledge that tomorrow will bring new revelations and a new understanding of the problem you are facing. ",
-                  "The moon is in a favorable position, which may swing the tide in your favor. This Tuesday, you will clean out your office refrigerator — something you have been meaning to do for months. Unfortunately, not all is favorable for you in the coming weeks. Your favorite coffee machine will break unexpectedly, while maintenance is nowhere to be found.",
-                  "Your prosperity is on the rise this year. Persistent efforts at home pay off. Autumn brings two years of growth and benefits through communications. Introspection, reflection and planning this winter leads to a revitalizing energy surge. Harness your passio",
-                  "Creativity and communications come easier. Investigate and research a fascination. Master the rules to break and mold them. Write, record and share what you're learning.",
-                  "At first, it seems as if the day is passing you by and that you are watching it on a screen, unable to interact with the events. After a few false starts, you begin to worry that you will miss your chance to make anything positive happen at all. However, delays can be used in your favor while you sharpen your analytical tools. Still, you must take a leap of faith today in order to get into the flow or you’ll end up looking back at your inaction with frustration. ",
-                  "You are tempted to disengage from social interactions today, simply do your work and then return to your cozy nest. You don’t feel like talking to anyone because they might ruin your peaceful state of mind. Nevertheless, human connection, like meditation and rest, is an essential ingredient to your emotional well-being. Overcoming uncertainty doesn’t require you to do anything differently now as long as you keep your mind open. ",
-                  "You might be playing with the idea of taking a day trip with a few of your closest friends. Although you can benefit from doing something outside your regular work hours, you also look forward to squeezing some fun activities into your work schedule today. Give yourself permission to feel good; enjoying the present moment is a decision you get to make every single moment. ",
-                  "Your thoughts may run all over the place today as you consider your role in a current partnership. Nevertheless, your common sense prevails, even if it’s not obvious how you justify your conclusions. Ultimately, fear can rule the day unless you consciously choose the high road. However, keeping your heart open is more than just stating your intention. Walking a mile in another person’s shoes drastically alters your perspective. Never assume you know what's going on until you do.",
-                  "You could accomplish amazing things today once you gain control of your own mind. But simply stating your intention is not enough; you must actually know you can do it. Naturally, it may be tricky to maintain your positive attitude while you’re in the midst of the flurry of current events. Escape the negative consequences of past actions by changing your frame of reference. ",
-                  "You tend to thrive when so many different issues demand your attention. There’s little opportunity for boredom to settle in now, especially if you continue to say yes to everyone who brings you a problem or an unfinished project. Thankfully, you won’t likely feel overloaded if you are doing what you love; you can easily keep up with your responsibilities when your mission is clear. ",
-                  "Someone might think your self-protective nature could be detrimental, preventing you from reaching your goals. Oddly enough, most people don’t even know what your objectives are, no less your plans for achieving them. Meanwhile, you realize that when you don’t feel emotionally secure, you’re too preoccupied to concentrate on your to-do list. However, you transform into a miracle worker once you know your needs are met and your heart is safe from harm",
-                  "Almost everyone may leave you alone today, and you really don’t mind the distance at all. However, you begin to long for uplifting interpersonal connections as the day wears on. Thankfully, you don’t need to try very hard in your search for companionship now. Once you make your availability known, potential partners-in-crime appear everywhere you look. Nevertheless, it’s still up to you to decide which one is the most compatible with your goals. Remember, it’s the friends you meet along the way that help you appreciate the journey.",
-                  "You could be feeling more vulnerable today than anyone realizes. You can easily hide behind your words because they sound more combative than you intend. Meanwhile, your real emotions are buried out of sight in hopes that no one will see them. Nevertheless, you don’t need to accept the status quo if you choose to break through your fear of sharing your heart. ",
-                  "You can tell something’s not quite right today; it’s as if someone close to you is pulling away but won’t admit it. Unfortunately, sobering Saturn is crossing paths with the Virgo Sun, restricting the flow of love and light. There is a lesson for you to learn now, but the temporary isolation is not indicative of a permanent condition. Examine your own feelings to see if you’re the one who is retreating emotionally. ",
-                  "Taking others under your wing at work today is a challenging process, especially if you’re feeling a bit insecure yourself. You want only the best people involved in your project, but you don’t necessarily enjoy it if they outshine you. Nevertheless, you can’t help but nurture those who need it the most now. Meanwhile, staying connected with your friends during the process is a good idea because it allows you to move through the rough spots without missing a beat. Competition makes us faster; collaboration makes us better.",
-                  "There are thoughts you want to share but you struggle with putting them out in the open. You are protective of your ideas and don’t want anyone else to know about them until they are further along in their development. You are eager to hone your vision into ready-for-prime-time shape, but may be strapped for time now. Fortunately, your commitment to excellence motivates you to return to this personal work when you can."
-                  ]
     for(const specID of idList){
       var counter = getRandomIntInclusive(0, fortunes.length - 1)
 	  	randNum = getRandomIntInclusive(1,560)
