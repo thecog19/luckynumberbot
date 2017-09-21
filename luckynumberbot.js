@@ -2,12 +2,13 @@ var RtmClient = require('@slack/client').RtmClient;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var fortuneArr = require("./fortunes")
 var http = require('http');
+var noodle = require('noodlejs');
 
 var bot_token = process.env.BOT_CODE || '';
 var schedule = require('node-schedule');
 var rule = new schedule.RecurrenceRule();
 rule.hour = 9
-rule.minute = 15
+rule.minute = 14
 
 
 var rtm = new RtmClient(bot_token);
@@ -54,6 +55,23 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
   // idList = ['D71E7G4A3']
+  
+  for(const symbol of symbols){
+    var url = 'https://www.astrology.com/horoscope/daily/' + symbol +".html"
+    noodle.query({  
+    url: url,
+    type: 'html',
+    selector: 'div.page-horoscope-text',
+    extract: 'text'
+    }).then(function (results) {
+      if(fortunes.length > 12){
+        fortunes = [results["results"][0]["results"][0]]
+      }else{
+        fortunes.push(results["results"][0]["results"][0])
+      }
+      });
+
+  }
 
   var job = schedule.scheduleJob(rule, ()=>{
   console.log("getting ready to send out fortunes")
