@@ -11,6 +11,12 @@ rule.hour = 9
 rule.minute = 14
 
 
+//TO DO: Tarot Cards
+//Give Horoscope Based on astrological sign. 
+//Log which user got which horoscope
+//Store horoscopes in a db (sqllite? postgress?)
+//Run nlp on stored horoscopes + other horoscope data.
+
 var rtm = new RtmClient(bot_token);
 let idList = []
 let ignoredChannels = {}
@@ -55,7 +61,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
   // idList = ['D71E7G4A3']
-  
+
   for(const symbol of symbols){
     var url = 'https://www.astrology.com/horoscope/daily/' + symbol +".html"
     noodle.query({  
