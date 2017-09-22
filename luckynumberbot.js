@@ -40,6 +40,14 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
     }
   }
 
+  var MarkovChain = require('markovchain')
+  var fs = require('fs')
+  var randomWord = ["hello", "the", "a", "Concerns", "You", "Connecting", "There’s ", "You'll", "Are", "Creativity"]
+  var quotes = new MarkovChain(fs.readFileSync('./fortunesRAW.txt', 'utf8'))
+  for(var k = 0; k < 10; k++){
+    console.log(quotes.start(randomWord[k]).process())
+  }
+
   // console.log("addingAPIStuff")
   // for(symbol of symbols){
   //   var body = []
